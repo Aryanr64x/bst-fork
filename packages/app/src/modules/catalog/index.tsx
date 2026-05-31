@@ -4,16 +4,46 @@ import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { useEntity } from '@backstage/plugin-catalog-react';
 import { Button, Box, Typography } from '@mui/material';
 import { InfoCard } from '@backstage/core-components';
+
 import { MockUser, ProductionRequest } from '../../interfaces';
-import { RaiseRequestForm, NewRequestInput } from '../components/RaiseRequestForm';
+import {
+  RaiseRequestForm,
+  NewRequestInput,
+} from '../components/RaiseRequestForm';
 import { RequestList } from '../components/RequestList';
 import { useProductionRequestsApi } from '../api/ProductionRequests';
 import { RequestDetail } from '../components/RequestListDetail';
+import { useRequestsStream } from '../hooks/useRequestsStream';
+
 const mockUsers: MockUser[] = [
-  { id: 'Pramod Reddy', name: 'Pramod Reddy', email: 'pramod.reddy@example.com', group: 'chat-api-team', label: 'Pramod Reddy (Chat API Team)' },
-  { id: 'Prashant Devadiga', name: 'Prashant Devadiga', email: 'prashant.devadiga@example.com', group: 'manager-approvers', label: 'Prashant Devadiga (Manager Approvers)' },
-  { id: 'Akshit Saini', name: 'Akshit Saini', email: 'akshit.saini@example.com', group: 'mlops-team', label: 'Akshit Saini (MlOps Team)' },
-  { id: 'Hritik Kadam', name: 'Hritik Kadam', email: 'hritik.kadam@example.com', group: 'qa-signoff-team', label: 'Hritik Kadam (Staging Sign-Off Team)' },
+  {
+    id: 'Pramod Reddy',
+    name: 'Pramod Reddy',
+    email: '',
+    group: 'chat-api-team',
+    label: 'Pramod Reddy',
+  },
+  {
+    id: 'Prashant Devadiga',
+    name: 'Prashant Devadiga',
+    email: '',
+    group: 'manager-approvers',
+    label: 'Prashant Devadiga',
+  },
+  {
+    id: 'Akshit Saini',
+    name: 'Akshit Saini',
+    email: '',
+    group: 'mlops-team',
+    label: 'Akshit Saini',
+  },
+  {
+    id: 'Hritik Kadam',
+    name: 'Hritik Kadam',
+    email: '',
+    group: 'qa-signoff-team',
+    label: 'Hritik Kadam',
+  },
 ];
 
 const ProductionRequestsPage = () => {
@@ -28,23 +58,33 @@ const ProductionRequestsPage = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUser = mockUsers.find(u => u.id === currentUserId) ?? mockUsers[0];
+  const currentUser =
+    mockUsers.find(u => u.id === currentUserId) ?? mockUsers[0];
 
   const loadRequests = useCallback(async () => {
     try {
-      setRequests(await api.list(apiRef));
+      const data = await api.list(apiRef);
+      setRequests(data);
       setError(null);
     } catch (e) {
       setError(String(e));
     }
   }, [api, apiRef]);
-
-  useEffect(() => { void loadRequests(); }, [loadRequests]);
+  
+  useRequestsStream(loadRequests); 
+  useEffect(() => {
+    void loadRequests();
+  }, [loadRequests]);
 
   const handleCreate = async (input: NewRequestInput) => {
     setBusy(true);
     try {
-      await api.create({ apiRef, requestedBy: currentUser.name, ...input });
+      await api.create({
+        apiRef,
+        requestedBy: currentUser.name,
+        ...input,
+      });
+
       setMode('list');
       await loadRequests();
     } catch (e) {
@@ -57,16 +97,22 @@ const ProductionRequestsPage = () => {
   const runTransition = async (id: string, action: string) => {
     setBusy(true);
     try {
-      await api.transition(id, { action, actorGroup: currentUser.group, actor: currentUser.name });
+      await api.transition(id, {
+        action,
+        actorGroup: currentUser.group,
+        actor: currentUser.name,
+      });
+
       await loadRequests();
     } catch (e) {
-      setError(String(e)); // shows the 409 reason from the backend
+      setError(String(e));
     } finally {
       setBusy(false);
     }
   };
 
-  const selected = requests.find(r => r.id === selectedId) ?? null;
+  const selected =
+    requests.find(r => r.id === selectedId) ?? null;
 
   return (
     <div style={{ padding: 24 }}>
@@ -75,17 +121,35 @@ const ProductionRequestsPage = () => {
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <label>
           Current user:{' '}
-          <select value={currentUserId} onChange={e => setCurrentUserId(e.target.value)}>
-            {mockUsers.map(u => <option key={u.id} value={u.id}>{u.label}</option>)}
+          <select
+            value={currentUserId}
+            onChange={e => setCurrentUserId(e.target.value)}
+          >
+            {mockUsers.map(u => (
+              <option key={u.id} value={u.id}>
+                {u.label}
+              </option>
+            ))}
           </select>
         </label>
-        <p>Logged in as <strong>{currentUser.name}</strong> ({currentUser.group})</p>
+
+        <p>
+          Logged in as <strong>{currentUser.name}</strong> (
+          {currentUser.group})
+        </p>
       </div>
 
-      {error && <Typography color="error" gutterBottom>{error}</Typography>}
+      {error && (
+        <Typography color="error" gutterBottom>
+          {error}
+        </Typography>
+      )}
 
       {selected ? (
-        <RequestDetail request={selected} onBack={() => setSelectedId(null)} />
+        <RequestDetail
+          request={selected}
+          onBack={() => setSelectedId(null)}
+        />
       ) : (
         <>
           {currentUser.group === 'chat-api-team' &&
@@ -97,7 +161,10 @@ const ProductionRequestsPage = () => {
                 onCancel={() => setMode('list')}
               />
             ) : (
-              <Button variant="contained" onClick={() => setMode('create')}>
+              <Button
+                variant="contained"
+                onClick={() => setMode('create')}
+              >
                 Raise New Request
               </Button>
             ))}
@@ -106,11 +173,16 @@ const ProductionRequestsPage = () => {
             <InfoCard title="Requests">
               <RequestList
                 requests={requests}
-                canApprove={currentUser.group === 'manager-approvers'}
+                canApprove={
+                  currentUser.group === 'manager-approvers'
+                }
                 busy={busy}
-                onOpen={setSelectedId}
-                onApprove={id => runTransition(id, 'APPROVE')}
-                onReject={id => runTransition(id, 'REJECT')}
+                onApprove={id =>
+                  runTransition(id, 'APPROVE')
+                }
+                onReject={id =>
+                  runTransition(id, 'REJECT')
+                }
               />
             </InfoCard>
           </Box>
@@ -126,7 +198,8 @@ const productionRequestsContent = EntityContentBlueprint.make({
     path: '/production-requests',
     title: 'Production Requests',
     filter: entity =>
-      entity.kind.toLowerCase() === 'api' && entity.metadata.name === 'chat-api',
+      entity.kind.toLowerCase() === 'api' &&
+      entity.metadata.name === 'chat-api',
     loader: async () => <ProductionRequestsPage />,
   },
 });

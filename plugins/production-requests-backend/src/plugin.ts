@@ -1,7 +1,6 @@
 import { createBackendPlugin, coreServices } from '@backstage/backend-plugin-api';
-import {createRouter} from './router';
+import { createRouter } from './router';
 import { RequestsStore } from './database/RequestStore';
-
 
 export const productionRequestsPlugin = createBackendPlugin({
   pluginId: 'production-requests',
@@ -15,14 +14,16 @@ export const productionRequestsPlugin = createBackendPlugin({
       async init({ httpRouter, logger, database }) {
         const store = await RequestsStore.create(database);
         httpRouter.use(await createRouter({ logger, store }));
-        // learning shortcut — open routes until we wire real identity later
+
         httpRouter.addAuthPolicy({ path: '/health', allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests', allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests/:id/transition', allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests/:id/events', allow: 'unauthenticated' });
-
+        httpRouter.addAuthPolicy({ path: '/events/stream', allow: 'unauthenticated' });      // SSE
+        httpRouter.addAuthPolicy({ path: '/requests/merged', allow: 'unauthenticated' });   // GitLab webhook
       },
     });
   },
 });
+
 export default productionRequestsPlugin;
