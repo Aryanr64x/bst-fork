@@ -6,12 +6,13 @@ import { Action, Status, checkTransition } from './workflow';
 export async function createRouter(opts: {
   logger: LoggerService;
   store: RequestsStore;
+  jenkinsClient: any;
 }) {
-  const { store, logger } = opts;
+  const { store, logger, jenkinsClient } = opts;
   const router = Router();
   router.use(express.json());
 
-  // Move INSIDE createRouter — guaranteed same closure
+  // moving this inside createRouter to guarantee closure
   const clients = new Set<express.Response>();
 
   function broadcast(event: string, data: unknown) {
@@ -19,7 +20,8 @@ export async function createRouter(opts: {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
   for (const client of clients) {
     client.write(payload);
-    (client as any).flush?.();  // 👈 force flush after broadcast
+    // doing force flush after broadcast
+    (client as any).flush?.();  
   }
 }
 
@@ -106,10 +108,24 @@ export async function createRouter(opts: {
     });
 
     broadcast('request_updated', updated);
+
+    // but now also run jenkins job from here as part of automation 
+    const jobName = updated.apiRef.split('/').pop()!;
+
+  jenkinsClient
+  .triggerBuild(jobName, { requestId: updated.id })
+  .catch((err: unknown) => {
+    logger.error(
+      
+      `Jenkins trigger failed: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  });
     res.json(updated);
   });
 
-  // NOTE: this must come AFTER /requests/merged to avoid :id capturing "merged"
+
+
+
   router.post('/requests/:id/transition', async (req, res) => {
     const { action, actorGroup, actor, comment } = req.body as {
       action: Action;
@@ -146,7 +162,7 @@ export async function createRouter(opts: {
       res.status(404).json({ error: 'request not found' });
       return;
     }
-    res.json(await store.getEvents(existing.id));
+    res.json(await store.getEvents(existing.id));  
   });
 
   return router;

@@ -70,8 +70,8 @@ const ProductionRequestsPage = () => {
       setError(String(e));
     }
   }, [api, apiRef]);
-  
-  useRequestsStream(loadRequests); 
+
+  useRequestsStream(loadRequests);
   useEffect(() => {
     void loadRequests();
   }, [loadRequests]);
@@ -177,17 +177,28 @@ const ProductionRequestsPage = () => {
                   currentUser.group === 'manager-approvers'
                 }
                 busy={busy}
-                onApprove={id =>
-                  runTransition(id, 'APPROVE')
-                }
-                onReject={id =>
-                  runTransition(id, 'REJECT')
-                }
+                onApprove={id => runTransition(id, 'APPROVE')}
+                onReject={id => runTransition(id, 'REJECT')}
               />
             </InfoCard>
           </Box>
         </>
       )}
+    </div>
+  );
+};
+
+const JenkinsJobPage = () => {
+  const { entity } = useEntity();
+  const jobName = entity.metadata.name; // "chat-api" → /job/chat-api/
+
+  return (
+    <div style={{ height: 'calc(100vh - 200px)', padding: 8 }}>
+      <iframe
+        src={`http://localhost:8080/job/${jobName}/`}
+        style={{ width: '100%', height: '100%', border: 'none' }}
+        title="Jenkins job"
+      />
     </div>
   );
 };
@@ -204,7 +215,19 @@ const productionRequestsContent = EntityContentBlueprint.make({
   },
 });
 
+const jenkinsJobContent = EntityContentBlueprint.make({
+  name: 'jenkins-job',
+  params: {
+    path: '/jenkins',
+    title: 'Jenkins',
+    filter: entity =>
+      entity.kind.toLowerCase() === 'api' &&
+      entity.metadata.name === 'chat-api',
+    loader: async () => <JenkinsJobPage />,
+  },
+});
+
 export const catalogModule = createFrontendModule({
   pluginId: 'catalog',
-  extensions: [productionRequestsContent],
+  extensions: [productionRequestsContent, jenkinsJobContent],
 });

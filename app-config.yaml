@@ -180,4 +180,8 @@ mcpActions:
   description: 'Tools for managing your software catalog, creating new services from templates, and exploring your developer portal' # optional
 
 
-
+productionRequests:
+  jenkins:
+    baseUrl: http://localhost:8080
+    username: aryan_saket
+    apiToken: 11b2713664d7358543e408c1e75ab4a81c
