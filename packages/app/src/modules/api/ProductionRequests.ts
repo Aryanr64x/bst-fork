@@ -12,9 +12,12 @@ export type CreateRequestPayload = {
   apiRef: string;
   title: string;
   prLink: string;
+  branch: string;
+  changeType: string;
   description?: string;
   requestedBy: string;
 };
+
 
 export type TransitionPayload = {
   action: string;

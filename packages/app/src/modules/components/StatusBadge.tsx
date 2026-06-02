@@ -11,7 +11,7 @@ type MuiColor =
 
 const STATUS_META: Record<string, { label: string; color: MuiColor }> = {
   pending_manager_approval: {
-    label: 'Pending Manager Approval',
+    label: 'A new request has been raised. Pending Manager Approval',
     color: 'warning',
   },
 
@@ -21,7 +21,7 @@ const STATUS_META: Record<string, { label: string; color: MuiColor }> = {
   },
 
   pending_staging_ci: {
-    label: 'Pending Staging CI',
+    label: 'Waiting for Staging CI to finish',
     color: 'info',
   },
 

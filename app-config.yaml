@@ -185,3 +185,6 @@ productionRequests:
     baseUrl: http://localhost:8080
     username: aryan_saket
     apiToken: 11b2713664d7358543e408c1e75ab4a81c
+  gitlab:
+    apiToken: glpat-ENgmfpdJiV6Q2i0Htuq4F2M6MQpvOjEKdTpuMGd1Ng8.01.170k11kwi
+    issueProject: 'saket.aryanr64x-group/manifests'  

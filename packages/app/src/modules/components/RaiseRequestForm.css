@@ -1,0 +1,203 @@
+.request-card {
+  width: 100%;
+  max-width: none;
+  padding: 36px;
+  border-radius: 6px;
+
+  background: linear-gradient(
+    135deg,
+    #003b34 0%,
+    #005f56 50%,
+    #003b34 100%
+  );
+
+  border: 1px solid #00897b;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.32);
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+.request-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.request-header p {
+  margin: 10px 0 0;
+  font-size: 15px;
+  color: #b2dfdb;
+}
+
+.request-header strong {
+  color: #80cbc4;
+}
+
+.request-divider {
+  height: 1px;
+  background: #00897b;
+  margin: 28px 0;
+}
+
+.request-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-field:last-child {
+  grid-column: 1 / -1;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e0f2f1;
+}
+
+.form-field label span {
+  color: #ffb4a8;
+}
+
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #80cbc4;
+  border-radius: 0;
+
+  background: #ffffff;
+  color: #111827;
+
+  padding: 14px 16px;
+  font-size: 15px;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: #64748b;
+}
+
+.form-field input:focus,
+.form-field textarea:focus {
+  border-color: #26c6da;
+  box-shadow: 0 0 0 3px rgba(38, 198, 218, 0.22);
+}
+
+.form-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.error {
+  color: #ffb4a8;
+  font-size: 13px;
+}
+
+.request-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+.cancel-btn,
+.submit-btn {
+  border: none;
+  border-radius: 0;
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.cancel-btn {
+  background: transparent;
+  color: #b2dfdb;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.submit-btn {
+  background: #00acc1;
+  color: #ffffff;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #0097a7;
+}
+
+.submit-btn:disabled {
+  background: #335b5f;
+  color: #9fbfc2;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .request-card {
+    padding: 24px;
+  }
+
+  .request-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form-field select {
+  width: 100%;
+  box-sizing: border-box;
+
+  border: 1px solid #80cbc4;
+  border-radius: 0;
+
+  background-color: #ffffff;
+  color: #111827;
+
+  padding: 14px 40px 14px 16px;   /* extra right padding to make room for the caret */
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+
+  /* strip native OS chrome so it doesn't look like a Windows/Mac dropdown */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* custom downward caret (inline SVG, no extra asset needed) */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2364748b' d='M0 0L12 0L6 8z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+.form-field select:focus {
+  border-color: #26c6da;
+  box-shadow: 0 0 0 3px rgba(38, 198, 218, 0.22);
+}
+
+/* greys out the displayed text while the placeholder ("Select change type…") is the selected option */
+.form-field select:has(option[value=""]:checked) {
+  color: #64748b;
+}
+
+/* dropdown items themselves */
+.form-field select option {
+  color: #111827;
+  background: #ffffff;
+}
+.form-field select option[disabled] {
+  color: #94a3b8;
+}

@@ -8,27 +8,21 @@ async function ensureSchema(knex: KnexClient) {
   if (!(await knex.schema.hasTable('production_requests'))) {
     await knex.schema.createTable('production_requests', t => {
       t.uuid('id').primary();
-
       t.string('api_ref').notNullable();
-
       t.string('title').notNullable();
-
+      t.string('change_type').notNullable()
+      t.string('branch').notNullable()
+      t.string('issue_id').notNullable()
+      t.string('issue_link').notNullable()
       // application repo PR
       t.string('pr_link').notNullable();
-
       // manifest repo PRs
       t.string('staging_manifest_pr_link').nullable();
-
       t.string('prod_manifest_pr_link').nullable();
-
       t.text('description');
-
       t.string('requested_by').notNullable();
-
       t.string('status').notNullable();
-
       t.timestamp('created_at').notNullable();
-
       t.timestamp('updated_at').notNullable();
     });
   }
@@ -81,28 +75,22 @@ async function ensureSchema(knex: KnexClient) {
     });
   }
 }
-
+  
 const toDto = (row: any) => ({
   id: row.id,
-
   apiRef: row.api_ref,
-
   title: row.title,
-
   prLink: row.pr_link,
-
+  issueId: row.issue_id,
+  issueLink: row.issue_link,
+  branch: row.branch,
+  change_type: row.change_type,
   stagingManifestPrLink: row.staging_manifest_pr_link,
-
   prodManifestPrLink: row.prod_manifest_pr_link,
-
   description: row.description,
-
   requestedBy: row.requested_by,
-
   status: row.status,
-
   createdAt: row.created_at,
-
   updatedAt: row.updated_at,
 });
 
@@ -140,53 +128,45 @@ export class RequestsStore {
     apiRef: string;
     title: string;
     prLink: string;
+    branch: string;
+    changeType: string;
+    issueId: string;
+    issueLink: string;
     description?: string;
     requestedBy: string;
   }) {
     const now = new Date().toISOString();
-
     const id = crypto.randomUUID();
 
     await this.knex('production_requests').insert({
       id,
-
       api_ref: input.apiRef,
-
       title: input.title,
-
+      branch: input.branch,
+      change_type: input.changeType,
+      issue_id: input.issueId,
+      issue_link: input.issueLink,
       pr_link: input.prLink,
-
       staging_manifest_pr_link: null,
-
       prod_manifest_pr_link: null,
-
       description: input.description ?? null,
-
       requested_by: input.requestedBy,
-
       status: 'pending_manager_approval',
-
       created_at: now,
-
       updated_at: now,
     });
 
     await this.knex('production_request_events').insert({
       request_id: id,
-
       actor: input.requestedBy,
-
       action: 'SUBMIT',
-
       from_status: null,
-
       to_status: 'pending_manager_approval',
-
       created_at: now,
     });
 
-    return (await this.getById(id))!;
-  }
+  return (await this.getById(id))!;
+}
 
   async applyTransition(
     id: string,

@@ -4,6 +4,7 @@ import { catalogServiceRef } from '@backstage/plugin-catalog-node';
 import { JenkinsClient } from './jenkins/JenkinsClient';
 import { RequestsStore } from './database/RequestStore';
 import { createRouter } from './router';
+import { GitLabClient } from './gitlab/GitlabClient';
 
 export const productionRequestsPlugin = createBackendPlugin({
   pluginId: 'production-requests',
@@ -13,7 +14,7 @@ export const productionRequestsPlugin = createBackendPlugin({
         httpRouter: coreServices.httpRouter,
         logger:     coreServices.logger,
         database:   coreServices.database,
-        config:     coreServices.rootConfig,   // <-- this is where it comes from
+        config:     coreServices.rootConfig,   
         catalog:    catalogServiceRef,
         auth:       coreServices.auth,
       },
@@ -21,8 +22,8 @@ export const productionRequestsPlugin = createBackendPlugin({
         const store         = await RequestsStore.create(database);
         // const notifier      = new Notifier(Mailer.fromConfig(config, logger), catalog, auth);
         const jenkinsClient = JenkinsClient.fromConfig(config, logger);
-
-        httpRouter.use(await createRouter({ logger, store, jenkinsClient }));
+        const gitlabClient = GitLabClient.fromConfig(config, logger)
+        httpRouter.use(await createRouter({ logger, store, jenkinsClient, gitlabClient }));
 
         httpRouter.addAuthPolicy({ path: '/health',                       allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests',                     allow: 'unauthenticated' });

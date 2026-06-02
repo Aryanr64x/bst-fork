@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Accordion, AccordionSummary, AccordionDetails,
-  Box, Button, Typography, Link, Divider, CircularProgress,
+  Box, Button, Typography, Divider, CircularProgress,
 } from '@mui/material';
 import { ProductionRequest, RequestEvent } from '../interfaces';
 import { StatusBadge } from './StatusBadge';
@@ -33,28 +33,52 @@ export const RequestListItem = ({
     }
   };
 
-  // stop clicks on the buttons from toggling the accordion
-  const stop = (fn: () => void) => (e: React.MouseEvent) => { e.stopPropagation(); fn(); };
+  const stop = (fn: () => void) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    fn();
+  };
 
   return (
-    <Accordion onChange={handleExpand} disableGutters
-      sx={{ '&:before': { display: 'none' }, border: '1px solid #e3e6ea', borderRadius: 1, mb: 1 }}>
+    <Accordion
+      onChange={handleExpand}
+      disableGutters
+      sx={{
+        '&:before': { display: 'none' },
+        border: '1px solid #e3e6ea',
+        borderRadius: 1,
+        mb: 1,
+      }}
+    >
       <AccordionSummary expandIcon={<Box component="span" sx={{ fontSize: 18 }}>⌄</Box>}>
         <Box display="flex" alignItems="center" justifyContent="space-between" width="100%" pr={1}>
           <Box>
             <Typography variant="subtitle1">{request.title}</Typography>
-            <Typography variant="caption" color="text.secondary">by {request.requestedBy}</Typography>
+            <Typography variant="caption" color="text.secondary">
+              by {request.requestedBy}
+            </Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
             <StatusBadge status={request.status} />
             {canApprove && request.status === 'pending_manager_approval' && (
               <>
-                <Button size="small" variant="contained" color="success" disabled={busy}
-                  onClick={stop(() => onApprove(request.id))} onFocus={e => e.stopPropagation()}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="success"
+                  disabled={busy}
+                  onClick={stop(() => onApprove(request.id))}
+                  onFocus={e => e.stopPropagation()}
+                >
                   Approve
                 </Button>
-                <Button size="small" variant="contained" color="error" disabled={busy}
-                  onClick={stop(() => onReject(request.id))} onFocus={e => e.stopPropagation()}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  color="error"
+                  disabled={busy}
+                  onClick={stop(() => onReject(request.id))}
+                  onFocus={e => e.stopPropagation()}
+                >
                   Reject
                 </Button>
               </>
@@ -64,11 +88,34 @@ export const RequestListItem = ({
       </AccordionSummary>
 
       <AccordionDetails>
-        <Typography variant="subtitle2">PR</Typography>
-        <Link href={request.prLink} target="_blank" rel="noopener">{request.prLink}</Link>
+        <Box display="flex" gap={1} flexWrap="wrap" mb={2}>
+          <Button
+            variant="outlined"
+            size="small"
+            href={request.prLink}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View Code PR ↗
+          </Button>
 
-        <Typography variant="subtitle2" sx={{ mt: 1.5 }}>Description</Typography>
-        <Typography variant="body2">{request.description || 'No description provided.'}</Typography>
+          {request.issueLink && (
+            <Button
+              variant="outlined"
+              size="small"
+              href={request.issueLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View GitLab Issue{request.issueId ? ` #${request.issueId}` : ''} ↗
+            </Button>
+          )}
+        </Box>
+
+        <Typography variant="subtitle2">Description</Typography>
+        <Typography variant="body2">
+          {request.description || 'No description provided.'}
+        </Typography>
 
         <Divider sx={{ my: 2 }} />
 
@@ -80,7 +127,9 @@ export const RequestListItem = ({
             <Box key={ev.id} mb={1}>
               <Typography variant="body2">
                 <strong>{ev.action}</strong>
-                {ev.fromStatus ? ` · ${ev.fromStatus} → ${ev.toStatus}` : ` · ${ev.toStatus}`}
+                {ev.fromStatus
+                  ? ` · ${ev.fromStatus} → ${ev.toStatus}`
+                  : ` · ${ev.toStatus}`}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {ev.actor} · {new Date(ev.createdAt).toLocaleString()}

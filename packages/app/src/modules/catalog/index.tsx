@@ -102,6 +102,8 @@ const ProductionRequestsPage = () => {
         actorGroup: currentUser.group,
         actor: currentUser.name,
       });
+      
+
 
       await loadRequests();
     } catch (e) {
@@ -115,7 +117,7 @@ const ProductionRequestsPage = () => {
     requests.find(r => r.id === selectedId) ?? null;
 
   return (
-    <div style={{ padding: 24 }}>
+    <div style={{ padding: 24, width: '100%' }} >
       <h1>Production Requests</h1>
 
       <div style={{ marginTop: 24, marginBottom: 24 }}>

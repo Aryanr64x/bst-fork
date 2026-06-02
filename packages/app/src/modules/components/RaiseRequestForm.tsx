@@ -1,18 +1,29 @@
 import React from 'react';
-import { TextField, Button, Stack, Box, Typography, Paper, Divider } from '@mui/material';
+import './RaiseRequestForm.css';
 
-export type NewRequestInput = { title: string; prLink: string; description: string };
-const emptyForm: NewRequestInput = { title: '', prLink: '', description: '' };
-
-// explicit colors so contrast doesn't depend on theme tokens that may be identical
-const fieldSx = {
-  '& .MuiOutlinedInput-root': { backgroundColor: '#ffffff', borderRadius: 1.5 },
-  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#d6dae0' },
-  '& .MuiInputLabel-root': { color: '#5b6470' },
+export type NewRequestInput = {
+  title: string;
+  prLink: string;
+  branch: string;
+  changeType: string;
+  description: string;
 };
 
+const emptyForm: NewRequestInput = {
+  title: '',
+  prLink: '',
+  branch: '',
+  changeType: '',
+  description: '',
+};
+
+const CHANGE_TYPES = ['major', 'minor', 'patch', 'env-change'] as const;
+
 export const RaiseRequestForm = ({
-  apiName, requestedBy, onSubmit, onCancel,
+  apiName,
+  requestedBy,
+  onSubmit,
+  onCancel,
 }: {
   apiName: string;
   requestedBy: string;
@@ -21,49 +32,120 @@ export const RaiseRequestForm = ({
 }) => {
   const [form, setForm] = React.useState<NewRequestInput>(emptyForm);
 
-  const update =
-    (field: keyof NewRequestInput) =>
-    (event: React.ChangeEvent<HTMLInputElement>) =>
-      setForm(prev => ({ ...prev, [field]: event.target.value }));
+  // single value-based setter, no event types to wrestle with
+  const setField = (field: keyof NewRequestInput, value: string) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+  };
 
   const titleEmpty = form.title.trim() === '';
   const prInvalid = !/^https?:\/\//.test(form.prLink.trim());
-  const isValid = !titleEmpty && !prInvalid;
+  const branchEmpty = form.branch.trim() === '';
+  const changeTypeEmpty = form.changeType === '';
+
+  const isValid =
+    !titleEmpty && !prInvalid && !branchEmpty && !changeTypeEmpty;
+
   const titleShowError = form.title !== '' && titleEmpty;
   const prShowError = form.prLink !== '' && prInvalid;
+  const branchShowError = form.branch !== '' && branchEmpty;
 
   return (
-    <Paper
-      elevation={0}
-      sx={{ p: 3.5, borderRadius: 2, maxWidth: 640, bgcolor: '#f5f6f8', border: '1px solid #e3e6ea' }}
-    >
-      <Typography variant="h6" sx={{ color: '#1a1f27' }}>Raise production request</Typography>
-      <Typography variant="body2" sx={{ color: '#5b6470' }}>
-        For <strong>{apiName}</strong> · submitting as <strong>{requestedBy}</strong>
-      </Typography>
+    <div className="request-card">
+      <div className="request-header">
+        <h2>Raise production request</h2>
+        <p>
+          For <strong>{apiName}</strong> · submitting as{' '}
+          <strong>{requestedBy}</strong>
+        </p>
+      </div>
 
-      <Divider sx={{ my: 2.5 }} />
+      <div className="request-divider" />
 
-      <Stack spacing={2.5}>
-        <TextField label="Title" required value={form.title} onChange={update('title')}
-          error={titleShowError}
-          helperText={titleShowError ? 'Title is required' : "Short summary of what you're shipping"}
-          fullWidth sx={fieldSx} />
-        <TextField label="PR link" required value={form.prLink} onChange={update('prLink')}
-          error={prShowError}
-          helperText={prShowError ? 'Must start with http(s)://' : 'Link to the approved pull request'}
-          fullWidth sx={fieldSx} />
-        <TextField label="Description" value={form.description} onChange={update('description')}
-          helperText="Optional context for approvers"
-          multiline minRows={3} fullWidth sx={fieldSx} />
-      </Stack>
+      <div className="request-form">
+        <div className="form-field">
+          <label>
+            Title <span>*</span>
+          </label>
+          <input
+            value={form.title}
+            onChange={e => setField('title', e.target.value)}
+            placeholder="Short summary of what you're shipping"
+          />
+          {titleShowError && (
+            <small className="error">Title is required</small>
+          )}
+        </div>
 
-      <Box display="flex" justifyContent="flex-end" gap={1.5} mt={3}>
-        <Button variant="text" sx={{ color: '#5b6470' }} onClick={onCancel}>Cancel</Button>
-        <Button variant="contained" disableElevation disabled={!isValid} onClick={() => onSubmit(form)}>
+        <div className="form-field">
+          <label>
+            PR link <span>*</span>
+          </label>
+          <input
+            value={form.prLink}
+            onChange={e => setField('prLink', e.target.value)}
+            placeholder="https://gitlab.com/group/project/-/merge_requests/123"
+          />
+          {prShowError && (
+            <small className="error">Must start with http(s)://</small>
+          )}
+        </div>
+
+        <div className="form-field">
+          <label>
+            Branch <span>*</span>
+          </label>
+          <input
+            value={form.branch}
+            onChange={e => setField('branch', e.target.value)}
+            placeholder="feature/chat-streaming"
+          />
+          {branchShowError && (
+            <small className="error">Branch is required</small>
+          )}
+        </div>
+
+        <div className="form-field">
+          <label>
+            Change type <span>*</span>
+          </label>
+          <select
+            value={form.changeType}
+            onChange={e => setField('changeType', e.target.value)}
+          >
+            <option value="" disabled>
+              Select change type…
+            </option>
+            {CHANGE_TYPES.map(t => (
+              <option key={t} value={t}>
+                {t}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-field">
+          <label>Description</label>
+          <textarea
+            value={form.description}
+            onChange={e => setField('description', e.target.value)}
+            placeholder="Optional context for approvers (becomes the GitLab issue body)"
+            rows={4}
+          />
+        </div>
+      </div>
+
+      <div className="request-actions">
+        <button className="cancel-btn" onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          className="submit-btn"
+          disabled={!isValid}
+          onClick={() => onSubmit(form)}
+        >
           Submit request
-        </Button>
-      </Box>
-    </Paper>
+        </button>
+      </div>
+    </div>
   );
 };

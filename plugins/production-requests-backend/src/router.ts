@@ -3,12 +3,16 @@ import { Router } from 'express';
 import express from 'express';
 import { RequestsStore } from './database/RequestStore';
 import { Action, Status, checkTransition } from './workflow';
+
+
+
 export async function createRouter(opts: {
   logger: LoggerService;
   store: RequestsStore;
   jenkinsClient: any;
+  gitlabClient: any;
 }) {
-  const { store, logger, jenkinsClient } = opts;
+  const { store, logger, jenkinsClient, gitlabClient } = opts;
   const router = Router();
   router.use(express.json());
 
@@ -26,11 +30,11 @@ export async function createRouter(opts: {
 }
 
   router.get('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok' });  
   });
 
  router.get('/events/stream', (req, res) => {
-  console.log('🔌 SSE client connecting...');
+  console.log(' SSE client connecting...');
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -38,9 +42,12 @@ export async function createRouter(opts: {
   res.setHeader('Content-Encoding', 'identity');
   res.flushHeaders();
 
+
+
+  // mandatory force flush we are performing 
  const heartbeat = setInterval(() => {
   res.write(': ping\n\n');
-  (res as any).flush?.();  // 👈 force flush
+  (res as any).flush?.(); 
 }, 5_000);
 
   clients.add(res);
@@ -49,7 +56,7 @@ export async function createRouter(opts: {
   req.on('close', () => {
     clearInterval(heartbeat);
     clients.delete(res);
-    console.log(`🔴 SSE client removed. Total: ${clients.size}`);
+    console.log(` SSE client removed. Total: ${clients.size}`);
   });
 });
 
@@ -57,17 +64,48 @@ export async function createRouter(opts: {
     res.json(await store.list(req.query.apiRef as string | undefined));
   });
 
-  router.post('/requests', async (req, res) => {
-    const { apiRef, title, prLink, description, requestedBy } = req.body;
-    if (!apiRef || !title || !prLink || !requestedBy) {
-      res.status(400).json({ error: 'apiRef, title, prLink, requestedBy are required' });
+ router.post('/requests', async (req, res) => {
+  const { apiRef, title, prLink, description, requestedBy, branch, changeType } = req.body;
+  if (!apiRef || !title || !prLink || !requestedBy || !branch || !changeType) {
+    res.status(400).json({
+      error: 'apiRef, title, prLink, branch, changeType, requestedBy are required',
+    });
+    return;
+  }
+
+ 
+    let issue;
+    try {
+      issue = await gitlabClient.createIssue({
+        title,
+        description: description ?? '',
+      });
+    } catch (e) {
+      logger.error(`Issue creation failed: ${e}`);
+      res.status(502).json({ error: `Failed to create tracking issue: ${e}` });
       return;
     }
-    const created = await store.insert({ apiRef, title, prLink, description, requestedBy });
-    res.status(201).json(created);
+
+    try {
+      const created = await store.insert({
+        apiRef, title, prLink, branch, changeType,
+        issueId: issue.iid, issueLink: issue.url,
+        description, requestedBy,
+      });
+      res.status(201).json(created);
+    } catch (e) {
+      logger.error(`Insert failed after creating issue !${issue.iid}: ${e}`);
+      res.status(500).json({
+        error: 'Request creation failed after issue was created',
+        orphanedIssueUrl: issue.url,
+      });
+    }
   });
 
-  router.post('/requests/merged', async (req, res) => {
+
+
+
+    router.post('/requests/merged', async (req, res) => {
     const { object_kind, object_attributes } = req.body;
 
     if (object_kind !== 'merge_request' || object_attributes?.action !== 'merge') {
