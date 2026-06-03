@@ -16,7 +16,7 @@ metadata:
 spec:
   type: openapi
   lifecycle: experimental
-  owner: npci
+  owner: chat-api-team
   system: market-innovation
   definition: |
     openapi: 3.0.0

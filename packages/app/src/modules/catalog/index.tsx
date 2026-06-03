@@ -5,7 +5,7 @@ import { useEntity } from '@backstage/plugin-catalog-react';
 import { Button, Box, Typography } from '@mui/material';
 import { InfoCard } from '@backstage/core-components';
 
-import { MockUser, ProductionRequest } from '../../interfaces';
+import { ProductionRequest } from '../../interfaces';
 import {
   RaiseRequestForm,
   NewRequestInput,
@@ -14,52 +14,30 @@ import { RequestList } from '../components/RequestList';
 import { useProductionRequestsApi } from '../api/ProductionRequests';
 import { RequestDetail } from '../components/RequestListDetail';
 import { useRequestsStream } from '../hooks/useRequestsStream';
-
-const mockUsers: MockUser[] = [
-  {
-    id: 'Pramod Reddy',
-    name: 'Pramod Reddy',
-    email: '',
-    group: 'chat-api-team',
-    label: 'Pramod Reddy',
-  },
-  {
-    id: 'Prashant Devadiga',
-    name: 'Prashant Devadiga',
-    email: '',
-    group: 'manager-approvers',
-    label: 'Prashant Devadiga',
-  },
-  {
-    id: 'Akshit Saini',
-    name: 'Akshit Saini',
-    email: '',
-    group: 'mlops-team',
-    label: 'Akshit Saini',
-  },
-  {
-    id: 'Hritik Kadam',
-    name: 'Hritik Kadam',
-    email: '',
-    group: 'qa-signoff-team',
-    label: 'Hritik Kadam',
-  },
-];
+import { useCatalogUsers } from '../hooks/useCatalogUsers';
 
 const ProductionRequestsPage = () => {
   const { entity } = useEntity();
   const api = useProductionRequestsApi();
   const apiRef = `api:default/${entity.metadata.name}`;
 
-  const [currentUserId, setCurrentUserId] = useState(mockUsers[0].id);
+  const { users, loading } = useCatalogUsers();
+
+  const [currentUserId, setCurrentUserId] = useState<string>('');
   const [mode, setMode] = useState<'list' | 'create'>('list');
   const [requests, setRequests] = useState<ProductionRequest[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const currentUser =
-    mockUsers.find(u => u.id === currentUserId) ?? mockUsers[0];
+  // pick a sensible default once the catalog users load
+  useEffect(() => {
+    if (!currentUserId && users.length > 0) {
+      setCurrentUserId(users[0].id);
+    }
+  }, [users, currentUserId]);
+
+  const currentUser = users.find(u => u.id === currentUserId) ?? users[0];
 
   const loadRequests = useCallback(async () => {
     try {
@@ -102,8 +80,6 @@ const ProductionRequestsPage = () => {
         actorGroup: currentUser.group,
         actor: currentUser.name,
       });
-      
-
 
       await loadRequests();
     } catch (e) {
@@ -113,11 +89,15 @@ const ProductionRequestsPage = () => {
     }
   };
 
-  const selected =
-    requests.find(r => r.id === selectedId) ?? null;
+  // guard the first paint: currentUser is undefined until the catalog responds
+  if (loading || !currentUser) {
+    return <div style={{ padding: 24 }}>Loading users…</div>;
+  }
+
+  const selected = requests.find(r => r.id === selectedId) ?? null;
 
   return (
-    <div style={{ padding: 24, width: '100%' }} >
+    <div style={{ padding: 24, width: '100%' }}>
       <h1>Production Requests</h1>
 
       <div style={{ marginTop: 24, marginBottom: 24 }}>
@@ -127,7 +107,7 @@ const ProductionRequestsPage = () => {
             value={currentUserId}
             onChange={e => setCurrentUserId(e.target.value)}
           >
-            {mockUsers.map(u => (
+            {users.map(u => (
               <option key={u.id} value={u.id}>
                 {u.label}
               </option>
@@ -163,10 +143,7 @@ const ProductionRequestsPage = () => {
                 onCancel={() => setMode('list')}
               />
             ) : (
-              <Button
-                variant="contained"
-                onClick={() => setMode('create')}
-              >
+              <Button variant="contained" onClick={() => setMode('create')}>
                 Raise New Request
               </Button>
             ))}
@@ -175,9 +152,7 @@ const ProductionRequestsPage = () => {
             <InfoCard title="Requests">
               <RequestList
                 requests={requests}
-                canApprove={
-                  currentUser.group === 'manager-approvers'
-                }
+                canApprove={currentUser.group === 'manager-approvers'}
                 busy={busy}
                 onApprove={id => runTransition(id, 'APPROVE')}
                 onReject={id => runTransition(id, 'REJECT')}

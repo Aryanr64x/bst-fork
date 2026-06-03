@@ -10,7 +10,7 @@ metadata:
 spec:
   type: service
   lifecycle: experimental
-  owner: llm-team
+  owner: chat-api-team
   system: market-innovation
   providesApis:
     - test-service-api

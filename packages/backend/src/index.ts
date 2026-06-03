@@ -71,6 +71,16 @@ backend.add(import('@backstage/plugin-mcp-actions-backend'));
 
 
 backend.add(import('@internal/backstage-plugin-production-requests-backend'));
+
+
+// for users and groups ingestion
+backend.add(import('@backstage/plugin-catalog-backend-module-ldap'));
+
+// for auth 
+// auth-backend must come first — the LDAP module hooks into it
+backend.add(import('@immobiliarelabs/backstage-plugin-ldap-auth-backend'));
+
+
 backend.start();
 
 

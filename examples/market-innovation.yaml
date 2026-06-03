@@ -4,4 +4,4 @@ metadata:
   name: market-innovation
   description: Demo platform that contains our learning services
 spec:
-  owner: npci
+  owner: chat-api-team

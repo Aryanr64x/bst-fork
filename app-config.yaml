@@ -79,7 +79,20 @@ techdocs:
 
 auth:
   # see https://backstage.io/docs/auth/ to learn about auth providers
+  environment: development
   providers:
+    ldap:
+      development:
+        cookies:
+          secure: false        # plain http in local dev
+          field: 'backstage-token'
+        ldapAuthenticationOptions:
+          userSearchBase: 'ou=People,dc=npci,dc=local'
+          usernameAttribute: 'uid'
+          adminDn: 'cn=admin,dc=npci,dc=local'
+          adminPassword: 'admin'
+          ldapOpts:
+            url: 'ldap://localhost:389'
     # See https://backstage.io/docs/auth/guest/provider
     guest: {}
   # see https://backstage.io/docs/ai/mcp-actions#client-id-metadata-documents
@@ -99,6 +112,35 @@ scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
 
 catalog:
+  providers:
+    ldapOrg:
+      default:
+        target: ldap://localhost:389
+        bind:
+          dn: cn=admin,dc=npci,dc=local
+          secret: admin
+        users:
+          - dn: ou=People,dc=npci,dc=local
+            options:
+              filter: (objectClass=inetOrgPerson)
+            map:
+              rdn: uid
+              name: uid
+              displayName: cn
+              email: mail
+        groups:
+          - dn: ou=Groups,dc=npci,dc=local
+            options:
+              filter: (objectClass=groupOfNames)
+            map:
+              rdn: cn
+              name: cn
+              displayName: cn
+            set:
+              spec.type: team
+        schedule:
+          frequency: { minutes: 5 }
+          timeout: { minutes: 1 }
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
@@ -115,19 +157,12 @@ catalog:
       rules:
         - allow: [Template]
 
-    # Local example organizational data
-    - type: file
-      target: ../../examples/org.yaml
-      rules:
-        - allow: [User, Group]
+
 
     - type: file
       target: ../../examples/test-service.yaml
 
-    - type: file
-      target: ../../examples/llm-team.yaml
-      rules:
-        - allow: [Group]
+  
 
 
     - type: file
@@ -145,10 +180,6 @@ catalog:
       rules:
         - allow: [Resource]
 
-    - type: file
-      target: ../../examples/release-workflow-org.yaml
-      rules:
-        - allow: [Group]
 
 
     - type: file

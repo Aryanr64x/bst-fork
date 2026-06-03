@@ -2197,7 +2197,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/core-components@npm:^0.18.10, @backstage/core-components@npm:^0.18.9":
+"@backstage/core-components@npm:^0.18.10, @backstage/core-components@npm:^0.18.8, @backstage/core-components@npm:^0.18.9":
   version: 0.18.10
   resolution: "@backstage/core-components@npm:0.18.10"
   dependencies:
@@ -2255,7 +2255,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/core-plugin-api@npm:^1.12.5, @backstage/core-plugin-api@npm:^1.12.6":
+"@backstage/core-plugin-api@npm:^1.12.4, @backstage/core-plugin-api@npm:^1.12.5, @backstage/core-plugin-api@npm:^1.12.6":
   version: 1.12.6
   resolution: "@backstage/core-plugin-api@npm:1.12.6"
   dependencies:
@@ -2376,7 +2376,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/frontend-plugin-api@npm:^0.16.2":
+"@backstage/frontend-plugin-api@npm:^0.16.0, @backstage/frontend-plugin-api@npm:^0.16.2":
   version: 0.16.2
   resolution: "@backstage/frontend-plugin-api@npm:0.16.2"
   dependencies:
@@ -2609,7 +2609,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-app-react@npm:^0.2.3":
+"@backstage/plugin-app-react@npm:^0.2.1, @backstage/plugin-app-react@npm:^0.2.3":
   version: 0.2.3
   resolution: "@backstage/plugin-app-react@npm:0.2.3"
   dependencies:
@@ -2744,7 +2744,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/plugin-auth-node@npm:^0.7.1":
+"@backstage/plugin-auth-node@npm:^0.7.0, @backstage/plugin-auth-node@npm:^0.7.1":
   version: 0.7.1
   resolution: "@backstage/plugin-auth-node@npm:0.7.1"
   dependencies:
@@ -2807,6 +2807,23 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/7b2969776e6b35d56206dc051df5e523e3d8e366b606ba2caff3533c319a6fab9a8c024fec6f5830b477a0548977be9905c2763151c07dbf7fb0dfadf7eb582b
+  languageName: node
+  linkType: hard
+
+"@backstage/plugin-catalog-backend-module-ldap@npm:^0.12.5":
+  version: 0.12.5
+  resolution: "@backstage/plugin-catalog-backend-module-ldap@npm:0.12.5"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.9.1"
+    "@backstage/catalog-model": "npm:^1.9.0"
+    "@backstage/config": "npm:^1.3.8"
+    "@backstage/errors": "npm:^1.3.1"
+    "@backstage/plugin-catalog-common": "npm:^1.1.10"
+    "@backstage/plugin-catalog-node": "npm:^2.2.1"
+    "@backstage/types": "npm:^1.2.2"
+    ldapts: "npm:^8.0.6"
+    lodash: "npm:^4.17.21"
+  checksum: 10c0/1316aa5edf23a835d366c09295aad1245db0943747d118e6a169c047cec691095012c8f8d920f24f24a3874214558c5dbb578f8034d907f149a960e339250c89
   languageName: node
   linkType: hard
 
@@ -4233,7 +4250,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@backstage/theme@npm:^0.7.3":
+"@backstage/theme@npm:^0.7.2, @backstage/theme@npm:^0.7.3":
   version: 0.7.3
   resolution: "@backstage/theme@npm:0.7.3"
   dependencies:
@@ -5362,6 +5379,43 @@ __metadata:
   version: 2.0.3
   resolution: "@humanwhocodes/object-schema@npm:2.0.3"
   checksum: 10c0/80520eabbfc2d32fe195a93557cef50dfe8c8905de447f022675aaf66abc33ae54098f5ea78548d925aa671cd4ab7c7daa5ad704fe42358c9b5e7db60f80696c
+  languageName: node
+  linkType: hard
+
+"@immobiliarelabs/backstage-plugin-ldap-auth-backend@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@immobiliarelabs/backstage-plugin-ldap-auth-backend@npm:5.2.0"
+  dependencies:
+    "@backstage/backend-plugin-api": "npm:^1.9.0"
+    "@backstage/errors": "npm:^1.3.0"
+    "@backstage/plugin-auth-node": "npm:^0.7.0"
+    keyv: "npm:^5.6.0"
+    ldap-escape: "npm:^2.0.6"
+    ldapts: "npm:^8.1.7"
+  peerDependencies:
+    react: ^16.13.1 || ^17.0.0
+  checksum: 10c0/35be5210752c6cbf91fe6a23a10da6bb341e3c76318b20aa44783548870fad5450365a97e3820a6a65dcc4f13eff9d29a5a447a4d0af98780202ad3ea1062f29
+  languageName: node
+  linkType: hard
+
+"@immobiliarelabs/backstage-plugin-ldap-auth@npm:^5.2.0":
+  version: 5.2.0
+  resolution: "@immobiliarelabs/backstage-plugin-ldap-auth@npm:5.2.0"
+  dependencies:
+    "@backstage/core-components": "npm:^0.18.8"
+    "@backstage/core-plugin-api": "npm:^1.12.4"
+    "@backstage/frontend-plugin-api": "npm:^0.16.0"
+    "@backstage/plugin-app-react": "npm:^0.2.1"
+    "@backstage/theme": "npm:^0.7.2"
+    "@material-ui/core": "npm:^4.12.4"
+    password-validator: "npm:^5.3.0"
+    zod: "npm:^4.3.6"
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
+    react-router: ^6.30.2
+    react-router-dom: ^6.30.2
+  checksum: 10c0/294956424f0719623deac9a2e3bc9639bf3366704080dfa463549c409a6dc872b4281fefa8e53dfd223d55869b6b03f84b6670df44c6c06313c66ed81335df4e
   languageName: node
   linkType: hard
 
@@ -12870,6 +12924,7 @@ __metadata:
     "@backstage/plugin-techdocs-module-addons-contrib": "npm:^1.1.36"
     "@backstage/plugin-user-settings": "npm:^0.9.3"
     "@backstage/ui": "npm:^0.15.0"
+    "@immobiliarelabs/backstage-plugin-ldap-auth": "npm:^5.2.0"
     "@material-ui/core": "npm:^4.12.2"
     "@material-ui/icons": "npm:^4.9.1"
     "@playwright/test": "npm:^1.32.3"
@@ -13477,6 +13532,7 @@ __metadata:
     "@backstage/plugin-auth-backend-module-guest-provider": "npm:^0.2.19"
     "@backstage/plugin-auth-node": "npm:^0.7.1"
     "@backstage/plugin-catalog-backend": "npm:^3.7.0"
+    "@backstage/plugin-catalog-backend-module-ldap": "npm:^0.12.5"
     "@backstage/plugin-catalog-backend-module-logs": "npm:^0.1.22"
     "@backstage/plugin-catalog-backend-module-scaffolder-entity-model": "npm:^0.2.20"
     "@backstage/plugin-kubernetes-backend": "npm:^0.21.4"
@@ -13497,6 +13553,7 @@ __metadata:
     "@backstage/plugin-search-backend-node": "npm:^1.4.4"
     "@backstage/plugin-signals-backend": "npm:^0.3.15"
     "@backstage/plugin-techdocs-backend": "npm:^2.2.0"
+    "@immobiliarelabs/backstage-plugin-ldap-auth-backend": "npm:^5.2.0"
     "@internal/backstage-plugin-production-requests-backend": "workspace:^"
     app: "link:../app"
     better-sqlite3: "npm:^12.0.0"
@@ -21879,7 +21936,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keyv@npm:*, keyv@npm:^5.2.1":
+"keyv@npm:*, keyv@npm:^5.2.1, keyv@npm:^5.6.0":
   version: 5.6.0
   resolution: "keyv@npm:5.6.0"
   dependencies:
@@ -22051,6 +22108,22 @@ __metadata:
   dependencies:
     readable-stream: "npm:^2.0.5"
   checksum: 10c0/ea4e509a5226ecfcc303ba6782cc269be8867d372b9bcbd625c88955df1987ea1a20da4643bf9270336415a398d33531ebf0d5f0d393b9283dc7c98bfcbd7b69
+  languageName: node
+  linkType: hard
+
+"ldap-escape@npm:^2.0.6":
+  version: 2.0.6
+  resolution: "ldap-escape@npm:2.0.6"
+  checksum: 10c0/d97cc106b9b61f31a546aad35abbfd86c69e4e14e2f86b2335674c999a77a40a848d33b11df92f4558b0b944cbe0ac14ed821644f962f8c1104bed8a6a923b95
+  languageName: node
+  linkType: hard
+
+"ldapts@npm:^8.0.6, ldapts@npm:^8.1.7":
+  version: 8.1.8
+  resolution: "ldapts@npm:8.1.8"
+  dependencies:
+    strict-event-emitter-types: "npm:2.0.0"
+  checksum: 10c0/4130bd5d2f79889e334631f00f1b51bf358c90fbd960cbe89282f8f5c8d25d499ac65b536d776221215905bf7bd6b48f8a628f59333ec47f76780e4708126e23
   languageName: node
   linkType: hard
 
@@ -25042,6 +25115,13 @@ __metadata:
     pause: "npm:0.0.1"
     utils-merge: "npm:^1.0.1"
   checksum: 10c0/08c940b86e4adbfe43e753f8097300a5a9d1ce9a3aa002d7b12d27770943a1a87202c54597c0f04dbfd4117d67de76303433577512fc19c7e364fec37b0d3fc5
+  languageName: node
+  linkType: hard
+
+"password-validator@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "password-validator@npm:5.3.0"
+  checksum: 10c0/473ea684eb2d8a0f288ced7b712b49ca4d336bdc057f575fa893f2b87958626898e864eef33bfb3cbeefea23f509ce40cc54300ce9a44dd7e79b19ea4ffe9a2b
   languageName: node
   linkType: hard
 
@@ -29041,6 +29121,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"strict-event-emitter-types@npm:2.0.0":
+  version: 2.0.0
+  resolution: "strict-event-emitter-types@npm:2.0.0"
+  checksum: 10c0/7a2985b81908c2a7d1de10afe3be1de3423b8ce6188dc32aeb3dbaf66d4ac3f11029d6931c67d972a3bb976bbd04d27ee090eeed1cbd089c5ba3e899a04ed1b7
+  languageName: node
+  linkType: hard
+
 "string-hash@npm:^1.1.1":
   version: 1.1.3
   resolution: "string-hash@npm:1.1.3"
@@ -32002,7 +32089,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.76 || ^4.0.0, zod@npm:^4.0.0":
+"zod@npm:^3.25 || ^4.0, zod@npm:^3.25.76 || ^4.0.0, zod@npm:^4.0.0, zod@npm:^4.3.6":
   version: 4.4.3
   resolution: "zod@npm:4.4.3"
   checksum: 10c0/7ea31b558e88f9faf44f31dd185e2e1cbf51fed3081787fb96cc2534749b50c0acfc6da7f0922a7353ed092dd358c7d50c28ea96c94d04af64191bd33152eca3
