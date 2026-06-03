@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createFrontendModule } from '@backstage/frontend-plugin-api';
 import { EntityContentBlueprint } from '@backstage/plugin-catalog-react/alpha';
 import { useEntity } from '@backstage/plugin-catalog-react';
+import { useApi, identityApiRef } from '@backstage/core-plugin-api';
 import { Button, Box, Typography } from '@mui/material';
 import { InfoCard } from '@backstage/core-components';
 
@@ -19,25 +20,43 @@ import { useCatalogUsers } from '../hooks/useCatalogUsers';
 const ProductionRequestsPage = () => {
   const { entity } = useEntity();
   const api = useProductionRequestsApi();
+  const identityApi = useApi(identityApiRef);
   const apiRef = `api:default/${entity.metadata.name}`;
 
   const { users, loading } = useCatalogUsers();
 
-  const [currentUserId, setCurrentUserId] = useState<string>('');
+  // the signed-in user's id (e.g. "pramod.reddy"), resolved from their identity
+  const [signedInId, setSignedInId] = useState<string | null>(null);
+  const [identityResolved, setIdentityResolved] = useState(false);
+
   const [mode, setMode] = useState<'list' | 'create'>('list');
   const [requests, setRequests] = useState<ProductionRequest[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // pick a sensible default once the catalog users load
+  // resolve who's logged in, once
   useEffect(() => {
-    if (!currentUserId && users.length > 0) {
-      setCurrentUserId(users[0].id);
-    }
-  }, [users, currentUserId]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const id = await identityApi.getBackstageIdentity();
+        // userEntityRef looks like "user:default/pramod.reddy"
+        const name = id.userEntityRef.split('/').pop() ?? null;
+        if (!cancelled) setSignedInId(name);
+      } catch {
+        if (!cancelled) setSignedInId(null);
+      } finally {
+        if (!cancelled) setIdentityResolved(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [identityApi]);
 
-  const currentUser = users.find(u => u.id === currentUserId) ?? users[0];
+  // match the signed-in id to the catalog user (gives us name + group)
+  const currentUser = users.find(u => u.id === signedInId) ?? null;
 
   const loadRequests = useCallback(async () => {
     try {
@@ -55,6 +74,7 @@ const ProductionRequestsPage = () => {
   }, [loadRequests]);
 
   const handleCreate = async (input: NewRequestInput) => {
+    if (!currentUser) return;
     setBusy(true);
     try {
       await api.create({
@@ -62,7 +82,6 @@ const ProductionRequestsPage = () => {
         requestedBy: currentUser.name,
         ...input,
       });
-
       setMode('list');
       await loadRequests();
     } catch (e) {
@@ -73,6 +92,7 @@ const ProductionRequestsPage = () => {
   };
 
   const runTransition = async (id: string, action: string) => {
+    if (!currentUser) return;
     setBusy(true);
     try {
       await api.transition(id, {
@@ -80,7 +100,6 @@ const ProductionRequestsPage = () => {
         actorGroup: currentUser.group,
         actor: currentUser.name,
       });
-
       await loadRequests();
     } catch (e) {
       setError(String(e));
@@ -89,9 +108,22 @@ const ProductionRequestsPage = () => {
     }
   };
 
-  // guard the first paint: currentUser is undefined until the catalog responds
-  if (loading || !currentUser) {
-    return <div style={{ padding: 24 }}>Loading users…</div>;
+  // wait for both the catalog users AND the identity to resolve
+  if (loading || !identityResolved) {
+    return <div style={{ padding: 24 }}>Loading…</div>;
+  }
+
+  // signed in, but their identity didn't match any catalog user we loaded
+  if (!currentUser) {
+    return (
+      <div style={{ padding: 24 }}>
+        <Typography color="error">
+          Signed-in user{signedInId ? ` "${signedInId}"` : ''} was not found
+          among catalog users, or has no group. Production request actions are
+          unavailable.
+        </Typography>
+      </div>
+    );
   }
 
   const selected = requests.find(r => r.id === selectedId) ?? null;
@@ -101,24 +133,10 @@ const ProductionRequestsPage = () => {
       <h1>Production Requests</h1>
 
       <div style={{ marginTop: 24, marginBottom: 24 }}>
-        <label>
-          Current user:{' '}
-          <select
-            value={currentUserId}
-            onChange={e => setCurrentUserId(e.target.value)}
-          >
-            {users.map(u => (
-              <option key={u.id} value={u.id}>
-                {u.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <p>
+        <Typography>
           Logged in as <strong>{currentUser.name}</strong> (
           {currentUser.group})
-        </p>
+        </Typography>
       </div>
 
       {error && (
@@ -167,7 +185,7 @@ const ProductionRequestsPage = () => {
 
 const JenkinsJobPage = () => {
   const { entity } = useEntity();
-  const jobName = entity.metadata.name; // "chat-api" → /job/chat-api/
+  const jobName = entity.metadata.name;
 
   return (
     <div style={{ height: 'calc(100vh - 200px)', padding: 8 }}>
