@@ -20,6 +20,15 @@ export const RequestDetail = ({ request, onBack }: {
     <Typography variant="subtitle2" mt={2}>PR</Typography>
     <Link href={request.prLink} target="_blank" rel="noopener">{request.prLink}</Link>
 
+    {request.stagingManifestPrLink && (
+      <>
+        <Typography variant="subtitle2" mt={2}>Staging Manifest PR</Typography>
+        <Link href={request.stagingManifestPrLink} target="_blank" rel="noopener">
+          {request.stagingManifestPrLink}
+        </Link>
+      </>
+    )}
+
     <Typography variant="subtitle2" mt={2}>Description</Typography>
     <Typography variant="body2">{request.description || 'No description provided.'}</Typography>
   </Box>

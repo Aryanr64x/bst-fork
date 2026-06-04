@@ -5,6 +5,7 @@ import { JenkinsClient } from './jenkins/JenkinsClient';
 import { RequestsStore } from './database/RequestStore';
 import { createRouter } from './router';
 import { GitLabClient } from './gitlab/GitlabClient';
+import { ArgoCDClient } from './argocd/ArgoCDClient';
 
 export const productionRequestsPlugin = createBackendPlugin({
   pluginId: 'production-requests',
@@ -23,13 +24,17 @@ export const productionRequestsPlugin = createBackendPlugin({
         // const notifier      = new Notifier(Mailer.fromConfig(config, logger), catalog, auth);
         const jenkinsClient = JenkinsClient.fromConfig(config, logger);
         const gitlabClient = GitLabClient.fromConfig(config, logger)
-        httpRouter.use(await createRouter({ logger, store, jenkinsClient, gitlabClient }));
+        const argocdClient = ArgoCDClient.fromConfig(config, logger);
+        httpRouter.use(await createRouter({ logger, store, jenkinsClient, gitlabClient, argocdClient }));
 
         httpRouter.addAuthPolicy({ path: '/health',                       allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests',                     allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests/:id/transition',      allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests/:id/events',          allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/requests/merged',              allow: 'unauthenticated' });
+        httpRouter.addAuthPolicy({ path: '/requests/jenkins/staging-callback',   allow: 'unauthenticated' });
+        httpRouter.addAuthPolicy({ path: '/requests/staging-manifest/merged',    allow: 'unauthenticated' });
+        httpRouter.addAuthPolicy({ path: '/requests/argocd/staging-callback',    allow: 'unauthenticated' });
         httpRouter.addAuthPolicy({ path: '/events/stream',                allow: 'unauthenticated' });
       },
     });

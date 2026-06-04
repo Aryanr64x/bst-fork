@@ -11,8 +11,9 @@ export async function createRouter(opts: {
   store: RequestsStore;
   jenkinsClient: any;
   gitlabClient: any;
+  argocdClient: any;
 }) {
-  const { store, logger, jenkinsClient, gitlabClient } = opts;
+  const { store, logger, jenkinsClient, gitlabClient, argocdClient } = opts;
   const router = Router();
   router.use(express.json());
 
@@ -32,6 +33,7 @@ export async function createRouter(opts: {
   router.get('/health', (_req, res) => {
     res.json({ status: 'ok' });  
   });
+  
 
  router.get('/events/stream', (req, res) => {
   console.log(' SSE client connecting...');
@@ -70,7 +72,7 @@ export async function createRouter(opts: {
     res.status(400).json({
       error: 'apiRef, title, prLink, branch, changeType, requestedBy are required',
     });
-    return;
+    return;                            
   }
 
  
@@ -162,7 +164,148 @@ export async function createRouter(opts: {
   });
 
 
+  // ── Jenkins staging-CI callback ─────────────────────────────────
+  // Jenkins runs the staging CI job (triggered from /requests/merged),
+  // opens the staging manifest PR, then calls back here with the request
+  // id (passed to it as a build param) plus the manifest PR link.
+  // Advances pending_staging_ci → pending_staging_manifest_pr.
+  router.post('/requests/jenkins/staging-callback', async (req, res) => {
+    const { requestId, staging_manifest_pr_link: stagingManifestPrLink } = req.body;
 
+    if (!requestId || !stagingManifestPrLink) {
+      res.status(400).json({
+        error: 'requestId and staging_manifest_pr_link are required',
+      });
+      return;
+    }
+
+    const existing = await store.getById(requestId);
+    if (!existing) {
+      res.status(404).json({ error: 'request not found' });
+      return;
+    }
+
+    const result = checkTransition('RUN_STAGING_CI', existing.status as Status, 'mlops-team');
+    if (!result.ok) {
+      res.status(409).json({ error: result.reason });
+      return;
+    }
+
+    // persist the manifest PR link first so the broadcast carries it
+    await store.updateManifestPrLinks(existing.id, { stagingManifestPrLink });
+
+    const updated = await store.applyTransition(existing.id, result.to, {
+      actor: 'jenkins',
+      action: 'RUN_STAGING_CI',
+      fromStatus: existing.status,
+    });
+
+    broadcast('request_updated', updated);
+    res.json(updated);
+  });
+
+  // ── Staging manifest PR merged (GitLab webhook) ─────────────────
+  // Same shape as /requests/merged, but matches on the staging manifest
+  // PR link. Advances pending_staging_manifest_pr → pending_staging_cd,
+  // then kicks off ArgoCD sync (the way MERGE_PR kicks off Jenkins).
+  router.post('/requests/staging-manifest/merged', async (req, res) => {
+    const { object_kind, object_attributes } = req.body;
+
+    if (object_kind !== 'merge_request' || object_attributes?.action !== 'merge') {
+      res.status(200).json({ ignored: true });
+      return;
+    }
+
+    const mergedPrUrl: string = object_attributes?.url;
+    if (!mergedPrUrl) {
+      res.status(400).json({ error: 'No URL in payload' });
+      return;
+    }
+
+    const normalise = (u: string) => u.trim().replace(/\/$/, '').toLowerCase();
+    const all = await store.list();
+    const match = all.find(
+      r =>
+        r.stagingManifestPrLink &&
+        normalise(r.stagingManifestPrLink) === normalise(mergedPrUrl),
+    );
+
+    if (!match) {
+      res.status(200).json({ ignored: true, reason: 'no matching request' });
+      return;
+    }
+
+    if (match.status !== 'pending_staging_manifest_pr') {
+      res.status(409).json({
+        error: `status is ${match.status}, expected pending_staging_manifest_pr`,
+      });
+      return;
+    }
+
+    const result = checkTransition(
+      'MERGE_STAGING_MANIFEST_PR',
+      match.status as Status,
+      'mlops-team',
+    );
+    if (!result.ok) {
+      res.status(409).json({ error: result.reason });
+      return;
+    }
+
+    const updated = await store.applyTransition(match.id, result.to, {
+      actor: object_attributes?.user?.name ?? 'gitlab-webhook',
+      action: 'MERGE_STAGING_MANIFEST_PR',
+      fromStatus: match.status,
+    });
+
+    broadcast('request_updated', updated);
+
+    // kick off the ArgoCD sync, passing the request id along (fire-and-forget)
+    const appName = updated.apiRef.split('/').pop()!;
+    argocdClient
+      .sync(appName, { requestId: updated.id })
+      .catch((err: unknown) => {
+        logger.error(
+          `ArgoCD sync failed: ${err instanceof Error ? err.message : String(err)}`,
+        );
+      });
+
+    res.json(updated);
+  });
+
+  // ── ArgoCD staging sync-success callback ────────────────────────
+  // ArgoCD reports a successful staging sync (carrying the request id we
+  // passed in the sync `infos`). Advances pending_staging_cd →
+  // pending_staging_signoff.
+  router.post('/requests/argocd/staging-callback', async (req, res) => {
+    const { requestId } = req.body;
+
+    if (!requestId) {
+      res.status(400).json({ error: 'requestId is required' });
+      return;
+    }
+
+    const existing = await store.getById(requestId);
+    if (!existing) {
+      res.status(404).json({ error: 'request not found' });
+      return;
+    }
+
+    const result = checkTransition('RUN_STAGING_CD', existing.status as Status, 'mlops-team');
+    if (!result.ok) {
+      res.status(409).json({ error: result.reason });
+      return;
+    }
+
+    const updated = await store.applyTransition(existing.id, result.to, {
+      actor: 'argocd',
+      action: 'RUN_STAGING_CD',
+      fromStatus: existing.status,
+    });
+
+    broadcast('request_updated', updated);
+    res.json(updated);
+  });
 
   router.post('/requests/:id/transition', async (req, res) => {
     const { action, actorGroup, actor, comment } = req.body as {

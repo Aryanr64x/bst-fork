@@ -8,13 +8,15 @@ import { StatusBadge } from './StatusBadge';
 import { useProductionRequestsApi } from '../api/ProductionRequests';
 
 export const RequestListItem = ({
-  request, canApprove, busy, onApprove, onReject,
+  request, canApprove, canSignoff, busy, onApprove, onReject, onSignoff,
 }: {
   request: ProductionRequest;
   canApprove: boolean;
+  canSignoff: boolean;
   busy: boolean;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  onSignoff: (id: string) => void;
 }) => {
   const api = useProductionRequestsApi();
   const [events, setEvents] = useState<RequestEvent[] | null>(null);
@@ -83,6 +85,19 @@ export const RequestListItem = ({
                 </Button>
               </>
             )}
+
+            {canSignoff && request.status === 'pending_staging_signoff' && (
+              <Button
+                size="small"
+                variant="contained"
+                color="success"
+                disabled={busy}
+                onClick={stop(() => onSignoff(request.id))}
+                onFocus={e => e.stopPropagation()}
+              >
+                Sign Off
+              </Button>
+            )}
           </Box>
         </Box>
       </AccordionSummary>
@@ -108,6 +123,18 @@ export const RequestListItem = ({
               rel="noopener noreferrer"
             >
               View GitLab Issue{request.issueId ? ` #${request.issueId}` : ''} ↗
+            </Button>
+          )}
+
+          {request.stagingManifestPrLink && (
+            <Button
+              variant="outlined"
+              size="small"
+              href={request.stagingManifestPrLink}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Staging Manifest PR ↗
             </Button>
           )}
         </Box>

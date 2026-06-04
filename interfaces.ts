@@ -2,7 +2,7 @@ export interface MockUser{
     id: string;
     name: string;
     email: string;
-    group: 'mlops-team' | 'staging-signoff-team' | 'manager-approvers' | 'chat-api-team';
+    group: 'mlops-team' | 'qa-signoff-team' | 'manager-approvers' | 'chat-api-team';
     label: string;
 };  
 
@@ -12,6 +12,8 @@ export interface  ProductionRequest{
   apiRef: string;
   title: string;
   prLink: string;
+  stagingManifestPrLink?: string | null;
+  prodManifestPrLink?: string | null;
   description: string;
   requestedBy: string;
   status: string;

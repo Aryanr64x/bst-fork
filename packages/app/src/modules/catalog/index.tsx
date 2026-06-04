@@ -171,9 +171,11 @@ const ProductionRequestsPage = () => {
               <RequestList
                 requests={requests}
                 canApprove={currentUser.group === 'manager-approvers'}
+                canSignoff={currentUser.group === 'qa-signoff-team'}
                 busy={busy}
                 onApprove={id => runTransition(id, 'APPROVE')}
                 onReject={id => runTransition(id, 'REJECT')}
+                onSignoff={id => runTransition(id, 'GIVE_SIGNOFF')}
               />
             </InfoCard>
           </Box>

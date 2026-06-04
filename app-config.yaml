@@ -10,6 +10,9 @@ app:
     - page:catalog:
         config:
           path: /
+    - catalog-filter:catalog/list:
+        config:
+          initialFilter: all
 
 organization:
   name: NPCI
@@ -218,4 +221,7 @@ productionRequests:
     apiToken: 11b2713664d7358543e408c1e75ab4a81c
   gitlab:
     apiToken: glpat-ENgmfpdJiV6Q2i0Htuq4F2M6MQpvOjEKdTpuMGd1Ng8.01.170k11kwi
-    issueProject: 'saket.aryanr64x-group/manifests'  
+    issueProject: 'saket.aryanr64x-group/manifests'
+  argocd:
+    baseUrl: http://localhost:8081
+    apiToken: replace-me-with-argocd-api-token  
