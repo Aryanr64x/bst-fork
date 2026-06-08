@@ -60,6 +60,10 @@ integrations:
     # - host: ghe.example.net
     #   apiBaseUrl: https://ghe.example.net/api/v3
     #   token: ${GHE_TOKEN}
+  gitlab:
+    # Lets the catalog authenticate when fetching groups.yaml from a private GitLab repo
+    - host: gitlab.com
+      token: glpat-ENgmfpdJiV6Q2i0Htuq4F2M6MQpvOjEKdTpuMGd1Ng8.01.170k11kwi
 
 proxy:
   ### Example for how to add a proxy endpoint for the frontend.
@@ -131,25 +135,20 @@ catalog:
               name: uid
               displayName: cn
               email: mail
-        groups:
-          - dn: ou=Groups,dc=npci,dc=local
-            options:
-              filter: (objectClass=groupOfNames)
-            map:
-              rdn: cn
-              name: cn
-              displayName: cn
-            set:
-              spec.type: team
-        schedule:
-          frequency: { minutes: 5 }
-          timeout: { minutes: 1 }
+        # Groups are no longer ingested from LDAP — they come from the
+        # git-hosted groups.yaml location below.
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
   rules:
     - allow: [Component, System, API, Resource, Location]
   locations:
+    # Groups + memberships, managed in git (edit groups.yaml, commit, auto-polled)
+    - type: url
+      target: https://gitlab.com/saket.aryanr64x-group/manifests/-/blob/main/groups.yaml
+      rules:
+        - allow: [Group, User]
+
     # Local example data, file locations are relative to the backend process, typically `packages/backend`
     - type: file
       target: ../../examples/entities.yaml
@@ -224,4 +223,4 @@ productionRequests:
     issueProject: 'saket.aryanr64x-group/manifests'
   argocd:
     baseUrl: http://localhost:8081
-    apiToken: replace-me-with-argocd-api-token  
+    apiToken: replace-me-with-argocd-api-token
