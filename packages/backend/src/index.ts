@@ -80,7 +80,8 @@ backend.add(import('@backstage/plugin-catalog-backend-module-ldap'));
 // auth-backend must come first — the LDAP module hooks into it
 backend.add(import('@immobiliarelabs/backstage-plugin-ldap-auth-backend'));
 
-
+backend.add(import('./modules/ldapAuthExt'));
+backend.add(import('./modules/ldapUserTransform'));
 backend.start();
 
 
