@@ -18,17 +18,17 @@ auth:
   providers:
     guest: {}
     ldap:
-      production:
+      development:
         cookies:
           secure: false
           field: 'backstage-token'
         ldapAuthenticationOptions:
           userSearchBase: 'OU=NPCI Users,OU=NPCI,DC=npci,DC=org,DC=in'
-          usernameAttribute: 'mail'
+          usernameAttribute: 'sAMAccountName'
           adminDn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
-          adminPassword: '${LDAP_ADMIN_PASSWORD}'
+          adminPassword: 'Securegen@229933$'
           ldapOpts:
-            url: '<the url your IT dude gave>'
+            url: 'ldaps://10.88.1.121:636'
 
 catalog:
   locations:

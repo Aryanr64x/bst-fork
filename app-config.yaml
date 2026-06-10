@@ -28,11 +28,6 @@ backend:
   database:
     client: better-sqlite3
     connection: ':memory:'
-  actions:
-    pluginSources:
-      - auth
-      - catalog
-      - scaffolder
 
 integrations:
   github:
@@ -60,15 +55,13 @@ auth:
           secure: false
           field: 'backstage-token'
         ldapAuthenticationOptions:
-          userSearchBase: 'ou=People,dc=npci,dc=local'
-          usernameAttribute: 'mail'
-          adminDn: 'cn=admin,dc=npci,dc=local'
-          adminPassword: 'admin'
+          userSearchBase: 'OU=NPCI Users,OU=NPCI,DC=npci,DC=org,DC=in'
+          usernameAttribute: 'sAMAccountName'
+          adminDn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
+          adminPassword: 'Securegen@229933$'
           ldapOpts:
-            url: 'ldap://localhost:389'
+            url: 'ldaps://10.88.1.121:636'
     guest: {}
-  experimentalClientIdMetadataDocuments:
-    enabled: false
 
 scaffolder:
 
@@ -76,30 +69,31 @@ catalog:
   providers:
     ldapOrg:
       default:
-        target: ldap://localhost:389
+        target: ldaps://10.88.1.121:636
         bind:
-          dn: cn=admin,dc=npci,dc=local
-          secret: admin
+          dn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
+          secret: 'Securegen@229933$'
         users:
-          - dn: ou=People,dc=npci,dc=local
+          - dn: 'OU=NPCI Users,OU=NPCI,DC=npci,DC=org,DC=in'
             options:
-              filter: (objectClass=inetOrgPerson)
+              filter: (&(objectClass=user)(!(objectClass=computer)))
             map:
-              rdn: uid
-              name: uid
-              displayName: cn
+              rdn: cn
+              name: sAMAccountName
+              displayName: displayName
               email: mail
-        # Groups come from the git-hosted groups.yaml location below.
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
   rules:
     - allow: [Component, System, API, Resource, Location]
   locations:
-    - type: url
-      target: https://gitlab.com/saket.aryanr64x-group/manifests/-/blob/main/groups.yaml
+    # Groups (and only Groups) come from a local file for now;
+    # later swap to the GitLab-hosted URL when ready.
+    - type: file
+      target: ../../examples/groups.yaml
       rules:
-        - allow: [Group, User]
+        - allow: [Group]
 
     - type: file
       target: ../../examples/entities.yaml
@@ -136,10 +130,6 @@ kubernetes:
 
 permission:
   enabled: true
-
-mcpActions:
-  name: 'My Company Backstage'
-  description: 'Tools for managing your software catalog, creating new services from templates, and exploring your developer portal'
 
 productionRequests:
   jenkins:

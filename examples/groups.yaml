@@ -1,0 +1,70 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: npci
+  description: NPCI organization root
+spec:
+  type: organization
+  profile:
+    displayName: NPCI
+  children:
+    - chat-api-team
+    - manager-approvers
+    - mlops-team
+    - staging-signoff-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: chat-api-team
+  description: Team that works on chat api feature for upi help
+spec:
+  type: team
+  profile:
+    displayName: Chat API Team
+  parent: npci
+  children: []
+  members:
+    - pramod.reddy
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: manager-approvers
+  description: Managers who approve production requests
+spec:
+  type: team
+  profile:
+    displayName: Manager Approvers
+  parent: npci
+  children: []
+  members:
+    - prashant.devadiga
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: mlops-team
+  description: MLOps team that runs Jenkins and ArgoCD deployment steps
+spec:
+  type: team
+  profile:
+    displayName: MLOps Team
+  parent: npci
+  children: []
+  members:
+    - akshit.saini
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: staging-signoff-team
+  description: Testing team that signs off staging deployments
+spec:
+  type: team
+  profile:
+    displayName: Staging Sign-Off Team
+  parent: npci
+  children: []
+  members:
+    - hritik.kadam
