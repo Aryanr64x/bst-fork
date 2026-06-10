@@ -1,10 +1,19 @@
 app:
-  baseUrl: http://localhost:7007
+  # frontend URL — this should be where users reach the app in their browser,
+  # NOT 7007 (that's the backend). Set to your Linux box's address.
+  baseUrl: http://10.1.149.10:5705
 
 backend:
-  baseUrl: http://localhost:7007
-  listen: ':7007'
-
+  baseUrl: http://10.1.149.10:5705
+  listen:
+    host: 0.0.0.0
+    port: 5705
+  csp:
+    connect-src: ["'self'", 'http:', 'https:']
+  cors:
+    origin: http://localhost:3000
+    methods: [GET, HEAD, PATCH, POST, PUT, DELETE]
+    credentials: true
   database:
     client: pg
     connection:
@@ -16,9 +25,8 @@ backend:
 auth:
   environment: production
   providers:
-    guest: {}
     ldap:
-      development:
+      production:
         cookies:
           secure: false
           field: 'backstage-token'
@@ -29,9 +37,37 @@ auth:
           adminPassword: 'Securegen@229933$'
           ldapOpts:
             url: 'ldaps://10.88.1.121:636'
+    guest: {}
 
 catalog:
+  providers:
+    ldapOrg:
+      default:
+        target: ldaps://10.88.1.121:636
+        bind:
+          dn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
+          secret: 'Securegen@229933$'
+        users:
+          - dn: 'OU=NPCI Users,OU=NPCI,DC=npci,DC=org,DC=in'
+            options:
+              filter: (&(objectClass=user)(!(objectClass=computer)))
+            map:
+              rdn: cn
+              name: sAMAccountName
+              displayName: displayName
+              email: mail
+        schedule:
+          frequency: { minutes: 60 }
+          timeout: { minutes: 15 }
+          initialDelay: { seconds: 30 }
   locations:
+    # paths are relative to the working dir inside the container (/app),
+    # so ./examples resolves to /app/examples — matches how the image is built
+    - type: file
+      target: ./examples/groups.yaml
+      rules:
+        - allow: [Group]
+
     - type: file
       target: ./examples/entities.yaml
 
@@ -41,6 +77,24 @@ catalog:
         - allow: [Template]
 
     - type: file
-      target: ./examples/org.yaml
+      target: ./examples/test-service.yaml
+
+    - type: file
+      target: ./examples/market-innovation.yaml
       rules:
-        - allow: [User, Group]
+        - allow: [System]
+
+    - type: file
+      target: ./examples/test-service-api.yaml
+      rules:
+        - allow: [API]
+
+    - type: file
+      target: ./examples/test-db.yaml
+      rules:
+        - allow: [Resource]
+
+    - type: file
+      target: ./examples/chat-api.yaml
+      rules:
+        - allow: [API]
