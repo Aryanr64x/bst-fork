@@ -10,7 +10,7 @@ export class GitLabClient {
 
   static fromConfig(config: RootConfigService, logger: LoggerService) {
     const gitlab = config.getConfig('productionRequests.gitlab');
-    const baseUrl = (gitlab.getOptionalString('baseUrl') ?? 'https://gitlab.com').replace(/\/$/, '');
+    const baseUrl = (gitlab.getOptionalString('baseUrl') ?? 'https://git.npci.org.in').replace(/\/$/, '');
     const token = gitlab.getString('apiToken');
     const issueProject = gitlab.getString('issueProject');
     return new GitLabClient(baseUrl, token, issueProject, logger);

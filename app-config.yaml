@@ -60,7 +60,7 @@ auth:
           adminDn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
           adminPassword: 'Securegen@229933$'
           ldapOpts:
-            url:
+            url:   
               - 'ldaps://10.88.1.108:636'
             tlsOptions:
               rejectUnauthorized: false

@@ -111,3 +111,16 @@ catalog:
       target: ./examples/chat-api.yaml
       rules:
         - allow: [API]
+
+
+productionRequests:
+  jenkins:
+    baseUrl: http://localhost:8080
+    username: aryan_saket
+    apiToken: 11b2713664d7358543e408c1e75ab4a81c
+  gitlab:
+    apiToken: ${GITLAB_API_TOKEN} 
+    issueProject: ${GITLAB_ISSUE_PROJECT}
+  argocd:
+    baseUrl: http://localhost:8081
+    apiToken: replace-me-with-argocd-api-token

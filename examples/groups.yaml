@@ -53,7 +53,8 @@ spec:
   parent: npci
   children: []
   members:
-    - akshit.saini
+    - aryan.saket
+    
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Group

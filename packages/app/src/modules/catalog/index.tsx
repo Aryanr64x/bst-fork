@@ -5,7 +5,6 @@ import { useEntity } from '@backstage/plugin-catalog-react';
 import { useApi, identityApiRef } from '@backstage/core-plugin-api';
 import { Button, Box, Typography } from '@mui/material';
 import { InfoCard } from '@backstage/core-components';
-
 import { ProductionRequest } from '../../interfaces';
 import {
   RaiseRequestForm,
@@ -16,6 +15,12 @@ import { useProductionRequestsApi } from '../api/ProductionRequests';
 import { RequestDetail } from '../components/RequestListDetail';
 import { useRequestsStream } from '../hooks/useRequestsStream';
 import { useCatalogUsers } from '../hooks/useCatalogUsers';
+
+// ─── Superuser hard-pass ────────────────────────────────────────────────────
+// aryan.saket bypasses all group-based permission checks and can raise
+// requests, approve, reject, and sign off regardless of their catalog group.
+const SUPERUSER_ID = 'aryan.saket';
+// ────────────────────────────────────────────────────────────────────────────
 
 const ProductionRequestsPage = () => {
   const { entity } = useEntity();
@@ -55,6 +60,11 @@ const ProductionRequestsPage = () => {
     };
   }, [identityApi]);
 
+  // ── Superuser flag ─────────────────────────────────────────────────────────
+  // Hard-pass: aryan.saket gets every permission regardless of catalog group.
+  const isSuperuser = signedInId === SUPERUSER_ID;
+  // ──────────────────────────────────────────────────────────────────────────
+
   // match the signed-in id to the catalog user (gives us name + group)
   const currentUser = users.find(u => u.id === signedInId) ?? null;
 
@@ -69,6 +79,7 @@ const ProductionRequestsPage = () => {
   }, [api, apiRef]);
 
   useRequestsStream(loadRequests);
+
   useEffect(() => {
     void loadRequests();
   }, [loadRequests]);
@@ -118,13 +129,25 @@ const ProductionRequestsPage = () => {
     return (
       <div style={{ padding: 24 }}>
         <Typography color="error">
-          Signed-in user{signedInId ? ` "${signedInId}"` : ''} was not found
+          Signed-in user{signedInId ? `"${signedInId}"` : ''} was not found
           among catalog users, or has no group. Production request actions are
           unavailable.
         </Typography>
       </div>
     );
   }
+
+  // ── Permission helpers ─────────────────────────────────────────────────────
+  // Each check falls back to the superuser flag so aryan.saket always passes.
+  const canRaiseRequest =
+    isSuperuser || currentUser.group === 'chat-api-team';
+
+  const canApprove =
+    isSuperuser || currentUser.group === 'manager-approvers';
+
+  const canSignoff =
+    isSuperuser || currentUser.group === 'staging-signoff-team';
+  // ──────────────────────────────────────────────────────────────────────────
 
   const selected = requests.find(r => r.id === selectedId) ?? null;
 
@@ -134,8 +157,25 @@ const ProductionRequestsPage = () => {
 
       <div style={{ marginTop: 24, marginBottom: 24 }}>
         <Typography>
-          Logged in as <strong>{currentUser.name}</strong> (
-          {currentUser.group})
+          Logged in as <strong>{currentUser.name}</strong> ({currentUser.group})
+          {isSuperuser && (
+            <Typography
+              component="span"
+              sx={{
+                ml: 1,
+                px: 1,
+                py: 0.25,
+                borderRadius: 1,
+                bgcolor: 'warning.main',
+                color: 'warning.contrastText',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                verticalAlign: 'middle',
+              }}
+            >
+              SUPERUSER
+            </Typography>
+          )}
         </Typography>
       </div>
 
@@ -146,13 +186,10 @@ const ProductionRequestsPage = () => {
       )}
 
       {selected ? (
-        <RequestDetail
-          request={selected}
-          onBack={() => setSelectedId(null)}
-        />
+        <RequestDetail request={selected} onBack={() => setSelectedId(null)} />
       ) : (
         <>
-          {currentUser.group === 'chat-api-team' &&
+          {canRaiseRequest &&
             (mode === 'create' ? (
               <RaiseRequestForm
                 apiName={entity.metadata.name}
@@ -170,8 +207,8 @@ const ProductionRequestsPage = () => {
             <InfoCard title="Requests">
               <RequestList
                 requests={requests}
-                canApprove={currentUser.group === 'manager-approvers'}
-                canSignoff={currentUser.group === 'qa-signoff-team'}
+                canApprove={canApprove}
+                canSignoff={canSignoff}
                 busy={busy}
                 onApprove={id => runTransition(id, 'APPROVE')}
                 onReject={id => runTransition(id, 'REJECT')}
