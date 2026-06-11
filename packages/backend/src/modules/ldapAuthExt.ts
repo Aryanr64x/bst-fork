@@ -20,6 +20,7 @@ export default createBackendModule({
               return { uid: username.toLowerCase() };
             },
             async checkUserExists(uid) {
+                // console.log('USERCREDS_EXISTS_RECIEVED:', JSON.stringify(payload));
               const credentials = await auth.getOwnServiceCredentials();
               const entity = await catalog.getEntityByRef(
                 `user:default/${uid}`,

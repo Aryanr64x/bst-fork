@@ -60,8 +60,12 @@ auth:
           adminDn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
           adminPassword: 'Securegen@229933$'
           ldapOpts:
-            url: 'ldaps://10.88.1.121:636'
-    guest: {}
+            url:
+              - 'ldaps://10.88.1.108:636'
+            tlsOptions:
+              rejectUnauthorized: false
+      guest:
+        dangerouslyAllowOutsideDevelopment: true
 
 scaffolder:
 
@@ -69,19 +73,28 @@ catalog:
   providers:
     ldapOrg:
       default:
-        target: ldaps://10.88.1.121:636
+        target: ldaps://10.88.1.108:636
+        tls:
+          rejectUnauthorized: false
         bind:
           dn: 'CN=Hadoop Admin,OU=Server Service Account,OU=Servers,DC=npci,DC=org,DC=in'
           secret: 'Securegen@229933$'
         users:
           - dn: 'OU=NPCI Users,OU=NPCI,DC=npci,DC=org,DC=in'
             options:
+              scope: sub
               filter: (&(objectClass=user)(!(objectClass=computer)))
+              paged: true
             map:
               rdn: cn
               name: sAMAccountName
               displayName: displayName
               email: mail
+        schedule:
+          frequency: { hours: 1 }
+          timeout: { minutes: 15 }
+          initialDelay: { seconds: 15 }
+    
   import:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
